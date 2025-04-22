@@ -127,4 +127,3 @@ if st.button("📝 Generate Report") and irradiance_file and generation_file:
 else:
     if st.button("📝 Generate Report"):
         st.warning("Please upload both CSV files to proceed.")
-<REAL CODE INSERTED AFTERWARD>
