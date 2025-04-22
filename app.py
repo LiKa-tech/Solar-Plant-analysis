@@ -21,12 +21,12 @@ with st.sidebar:
     panel_power = st.number_input("Solar Panel Power (W)", min_value=1, value=400)
     efficiency = st.number_input("Panel Efficiency (%)", min_value=0.0, max_value=100.0, value=18.0)
     num_panels = st.number_input("Number of Panels", min_value=1, value=10)
-    
+
     st.markdown("#### Panel Dimensions")
     length = st.number_input("Length (m)", min_value=0.1, value=1.6)
     width = st.number_input("Width (m)", min_value=0.1, value=1.0)
-    
-    panel_area = length * width  # Compute area dynamically
+
+panel_area = length * width  # Compute area dynamically
 
 # File uploads
 irradiance_file = st.file_uploader("☀️ Upload Irradiance Data CSV", type="csv")
@@ -53,17 +53,39 @@ if st.button("📝 Generate Report"):
                 # Plotting
                 st.subheader("📊 Efficiency Visualization")
                 fig, ax = plt.subplots(figsize=(10, 5))
-                color_map = plt.get_cmap("RdYlGn_r")
 
+                # Expected Generation (Dark Blue)
+                ax.bar(df["Month"], df["ExpectedGeneration"], color='darkblue', label="Expected", alpha=0.6)
+
+                # Actual Generation (Green to Red gradient based on MonthlyEfficiency)
                 for i, row in df.iterrows():
-                    color = color_map(np.clip(row["MonthlyEfficiency"] / 100, 0, 1))
-                    ax.bar(row["Month"], row["ExpectedGeneration"], color=color, alpha=0.6, label="Expected")
-                    ax.bar(row["Month"], row["ActualGeneration"], color="blue", alpha=0.5)
+                    color = plt.cm.RdYlGn_r(np.clip(row["MonthlyEfficiency"] / 100, 0, 1))
+                    ax.bar(row["Month"], row["ActualGeneration"], color=color, alpha=0.8)
 
                 ax.set_ylabel("Energy (kWh)")
                 ax.set_title("Expected vs Actual Monthly Generation")
                 ax.grid(True)
+
+                # Labels
+                for i, row in df.iterrows():
+                    ax.text(row["Month"], row["ExpectedGeneration"] + 2, f"{row['ExpectedGeneration']:.2f}", color='black', ha='center')
+                    ax.text(row["Month"], row["ActualGeneration"] + 2, f"{row['ActualGeneration']:.2f}", color='red', ha='center')
+
+                # Legend
+                ax.legend(loc="upper left")
+
                 st.pyplot(fig)
+
+                # Monthly Efficiency Plot
+                st.subheader("📈 Monthly Efficiency")
+                fig_eff, ax_eff = plt.subplots(figsize=(10, 5))
+                ax_eff.plot(df["Month"], df["MonthlyEfficiency"], marker='o', color='purple', label="Efficiency (%)")
+                ax_eff.set_ylabel("Efficiency (%)")
+                ax_eff.set_title("Monthly Efficiency")
+                ax_eff.grid(True)
+                ax_eff.legend()
+
+                st.pyplot(fig_eff)
 
                 # Generate PDF Report
                 pdf_buffer = BytesIO()
@@ -89,7 +111,7 @@ if st.button("📝 Generate Report"):
                 y -= 15
                 c.drawString(50, y, f"Number of Panels: {num_panels}")
                 y -= 15
-                c.drawString(50, y, f"Panel Area (avg): {panel_area} m²")
+                c.drawString(50, y, f"Panel Area: {panel_area:.2f} m²")
                 y -= 30
 
                 c.drawString(50, y, f"Total Expected Generation: {total_expected:.2f} kWh")
@@ -115,6 +137,17 @@ if st.button("📝 Generate Report"):
                     if y < 100:
                         c.showPage()
                         y = height - 50
+
+                # Add the graphs as images
+                img_path = "/tmp/solar_generation_chart.png"
+                fig.savefig(img_path)
+                c.drawImage(img_path, 50, y-400, width=500, height=300)
+                y -= 400
+
+                img_path_eff = "/tmp/efficiency_chart.png"
+                fig_eff.savefig(img_path_eff)
+                c.drawImage(img_path_eff, 50, y-400, width=500, height=300)
+                y -= 400
 
                 c.save()
                 pdf_data = pdf_buffer.getvalue()
