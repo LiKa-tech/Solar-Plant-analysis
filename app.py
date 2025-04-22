@@ -25,6 +25,8 @@ with st.sidebar:
     st.markdown("#### Panel Dimensions")
     length = st.number_input("Length (m)", min_value=0.1, value=1.6)
     width = st.number_input("Width (m)", min_value=0.1, value=1.0)
+    
+    panel_area = length * width  # Compute area dynamically
 
 # File uploads
 irradiance_file = st.file_uploader("☀️ Upload Irradiance Data CSV", type="csv")
