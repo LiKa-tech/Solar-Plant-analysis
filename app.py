@@ -21,7 +21,10 @@ with st.sidebar:
     panel_power = st.number_input("Solar Panel Power (W)", min_value=1, value=400)
     efficiency = st.number_input("Panel Efficiency (%)", min_value=0.0, max_value=100.0, value=18.0)
     num_panels = st.number_input("Number of Panels", min_value=1, value=10)
-    panel_area = 1.6  # Fixed average panel area in m²
+    
+    st.markdown("#### Panel Dimensions")
+    length = st.number_input("Length (m)", min_value=0.1, value=1.6)
+    width = st.number_input("Width (m)", min_value=0.1, value=1.0)
 
 # File uploads
 irradiance_file = st.file_uploader("☀️ Upload Irradiance Data CSV", type="csv")
